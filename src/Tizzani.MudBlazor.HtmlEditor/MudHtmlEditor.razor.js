@@ -39,7 +39,7 @@ export class MudQuillInterop {
     constructor(dotNetRef, quill, editorRef, toolbarRef) {
         quill.getModule('toolbar').addHandler('hr', this.insertDividerHandler);
         quill.on('text-change', this.textChangedHandler);
-        quill.root.addEventListener('blur', this.blurHandler);
+        quill.on('selection-change', this.selectionChangedHandler);
         this.dotNetRef = dotNetRef;
         this.quill = quill;
         this.editorRef = editorRef;
@@ -85,7 +85,9 @@ export class MudQuillInterop {
         this.dotNetRef.invokeMethodAsync('HandleTextContentChanged', this.getText());
     };
 
-    blurHandler = () => {
-        this.dotNetRef.invokeMethodAsync('HandleBlur');
+    selectionChangedHandler = (range, oldRange, source) => {
+        if (range === null && oldRange !== null && this.hasFocus() == false) {
+            this.dotNetRef.invokeMethodAsync('HandleBlur');
+        }
     };
 }
