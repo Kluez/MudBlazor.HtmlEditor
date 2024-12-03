@@ -4,11 +4,16 @@
     <MudButton Color="Color.Primary" OnClick="SaveChanges" Size="Size.Small" StartIcon="@Icons.Material.Filled.Save" Variant="Variant.Filled">Save Changes</MudButton>
 </MudStack>
 
-<MudHtmlEditor @ref="_editor" @bind-Html="@_html" />
+<MudHtmlEditor @ref="_editor" @bind-Html="@_html" OnBlur="() => {_focus=false;}" />
+    <MudStack Justify="Justify.FlexStart" Row="true">
+        <MudButton Color="Color.Tertiary" Disabled="@(_focus)" OnClick="focus">Focus</MudButton>
+    </MudStack>
 
 @code {
     private MudHtmlEditor _editor = default!;
     private string _html = "";
+
+    private bool _focus;
 
     [Parameter]
     public string InitialHtml { get; set; } = "";
@@ -33,4 +38,11 @@
     {
         await OnSave.InvokeAsync(_html);
     }
+
+    private async Task focus()
+    {
+        await _editor.Focus();
+        _focus = await _editor.HasFocus();
+    }
+
 }

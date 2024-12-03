@@ -52,6 +52,13 @@ public sealed partial class MudHtmlEditor : IAsyncDisposable
     [Parameter]
     public EventCallback<string> TextChanged { get; set; }
 
+
+    /// <summary>
+    /// Raised when the editor loses focus.
+    /// </summary>
+    [Parameter]
+    public EventCallback OnBlur { get; set; }
+
     /// <summary>
     /// Whether or not the user can resize the editor. Default value is <see langword="true" />.
     /// </summary>
@@ -107,6 +114,19 @@ public sealed partial class MudHtmlEditor : IAsyncDisposable
         return "";
     }
 
+    public async Task Focus()
+    {
+        if (_quill is not null)
+            await _quill.InvokeVoidAsync("focus");
+    }
+
+    public async Task<bool> HasFocus()
+    {
+        if (_quill is not null)
+            return await _quill.InvokeAsync<bool>("hasFocus");
+        return false;
+    }
+
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
         if (firstRender)
@@ -139,6 +159,12 @@ public sealed partial class MudHtmlEditor : IAsyncDisposable
 
         Text = text;
         await TextChanged.InvokeAsync(text);
+    }
+
+    [JSInvokable]
+    public async void HandleBlur()
+    {
+        await OnBlur.InvokeAsync();
     }
 
     async ValueTask IAsyncDisposable.DisposeAsync()

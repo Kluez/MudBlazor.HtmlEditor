@@ -39,6 +39,7 @@ export class MudQuillInterop {
     constructor(dotNetRef, quill, editorRef, toolbarRef) {
         quill.getModule('toolbar').addHandler('hr', this.insertDividerHandler);
         quill.on('text-change', this.textChangedHandler);
+        quill.root.addEventListener('blur', this.blurHandler);
         this.dotNetRef = dotNetRef;
         this.quill = quill;
         this.editorRef = editorRef;
@@ -65,6 +66,14 @@ export class MudQuillInterop {
         }
     };
 
+    focus = () => {
+        this.quill.focus();
+    }
+
+    hasFocus = () => {
+        return this.quill.hasFocus();
+    }
+
     /**
      * 
      * @param {Delta} delta
@@ -74,5 +83,9 @@ export class MudQuillInterop {
     textChangedHandler = (delta, oldDelta, source) => {
         this.dotNetRef.invokeMethodAsync('HandleHtmlContentChanged', this.getHtml());
         this.dotNetRef.invokeMethodAsync('HandleTextContentChanged', this.getText());
+    };
+
+    blurHandler = () => {
+        this.dotNetRef.invokeMethodAsync('HandleBlur');
     };
 }
