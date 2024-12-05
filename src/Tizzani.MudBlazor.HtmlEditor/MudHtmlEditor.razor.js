@@ -14,9 +14,9 @@ Quill.register(Divider, true);
 
 try {
     Quill.register('modules/blotFormatter', QuillBlotFormatter.default);
-} catch { }    
+} catch { }
 
-export function createQuillInterop(dotNetRef, editorRef, toolbarRef, placeholder) {
+export function createQuillInterop(dotNetRef, editorRef, toolbarRef, placeholder, readOnly) {
     var quill = new Quill(editorRef, {
         modules: {
             toolbar: {
@@ -24,7 +24,8 @@ export function createQuillInterop(dotNetRef, editorRef, toolbarRef, placeholder
             },
             blotFormatter: {}
         },
-        placeholder: placeholder,
+        readOnly: readOnly,
+        placeholder: readOnly ? "" : placeholder,
         theme: 'snow'
     });
     return new MudQuillInterop(dotNetRef, quill, editorRef, toolbarRef);
@@ -37,8 +38,10 @@ export class MudQuillInterop {
      * @param {Element} toolbarRef
      */
     constructor(dotNetRef, quill, editorRef, toolbarRef) {
-        quill.getModule('toolbar').addHandler('hr', this.insertDividerHandler);
+        var toolbar = quill.getModule('toolbar');
+        toolbar.addHandler('hr', this.insertDividerHandler);
         quill.on('text-change', this.textChangedHandler);
+        toolbar.container.addEventListener("mousedown", this.toolbarMouseDownHandler);
         quill.on('selection-change', this.selectionChangedHandler);
         this.dotNetRef = dotNetRef;
         this.quill = quill;
@@ -58,14 +61,6 @@ export class MudQuillInterop {
         this.quill.root.innerHTML = html;
     }
 
-    insertDividerHandler = () => {
-        const range = this.quill.getSelection();
-
-        if (range) {
-            this.quill.insertEmbed(range.index, "hr", "null");
-        }
-    };
-
     focus = () => {
         this.quill.focus();
     }
@@ -73,6 +68,25 @@ export class MudQuillInterop {
     hasFocus = () => {
         return this.quill.hasFocus();
     }
+
+    enableEditor = (enable) => {
+        this.quill.enable(enable);
+        if (!enable) {
+            this.quill.root.placeholder = "";
+            this.quill.getModule('toolbar').container.classList.add('hidden');
+        }
+        else {
+            this.quill.getModule('toolbar').container.classList.remove('hidden');
+        }
+    }
+
+    insertDividerHandler = () => {
+        const range = this.quill.getSelection();
+
+        if (range) {
+            this.quill.insertEmbed(range.index, "hr", "null");
+        }
+    };
 
     /**
      * 
@@ -90,4 +104,9 @@ export class MudQuillInterop {
             this.dotNetRef.invokeMethodAsync('HandleBlur');
         }
     };
+
+    toolbarMouseDownHandler = (e) => {
+        e.preventDefault();
+    };
+
 }
